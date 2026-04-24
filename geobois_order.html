@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geoboard Woodworks - Order</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 20px; }
+  h1, h2 { color: #2d6a2d; }
+  .product, .total, .shipping-info { background: #fff; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
+  .total, .shipping-info { max-width: 400px; }
+  input[type=text], input[type=email] { width: 100%; padding: 8px; margin: 5px 0 10px; box-sizing: border-box; }
+  button { background: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+  button:hover { background: #45a049; }
+</style>
+</head>
+<body>
+
+<h1>🌲 Geoboard Woodworks</h1>
+
+<!-- Liste des produits -->
+<div class="product-list">
+  <h2>Select Your Products</h2>
+  <div class="product">
+    <input type="checkbox" class="item" data-price="1" id="ruler">
+    <label for="ruler"><strong>Ruler</strong> - Wood - €1.00</label>
+  </div>
+  <div class="product">
+    <input type="checkbox" class="item" data-price="1.5" id="customRuler">
+    <label for="customRuler"><strong>Custom Ruler</strong> - Engraved Wood - €1.50</label>
+  </div>
+  <div class="product">
+    <input type="checkbox" class="item" data-price="1.5" id="setSquare">
+    <label for="setSquare"><strong>Set Square</strong> - Wood - €1.50</label>
+  </div>
+  <div class="product">
+    <input type="checkbox" class="item" data-price="2" id="customSetSquare">
+    <label for="customSetSquare"><strong>Custom Set Square</strong> - Engraved Wood - €2.00</label>
+  </div>
+  <div class="product">
+    <input type="checkbox" class="item" data-price="3" id="comboPack">
+    <label for="comboPack"><strong>Combo Pack: Ruler + Set Square</strong> - Wooden ruler and set square - €3.00</label>
+  </div>
+</div>
+
+<!-- Formulaire d’adresse -->
+<div class="shipping-info">
+  <h2>Shipping Information</h2>
+  <input type="text" id="name" placeholder="Full Name" required>
+  <input type="text" id="address" placeholder="Address" required>
+  <input type="text" id="city" placeholder="City" required>
+  <input type="text" id="postal" placeholder="Postal Code" required>
+  <input type="text" id="country" placeholder="Country" required>
+  <input type="email" id="email" placeholder="Email" required>
+</div>
+
+<!-- Total et bouton confirmer -->
+<div class="total">
+  <h2>Order Total</h2>
+  <p id="noItem">No products selected</p>
+  <p>Shipping: €<span id="shipping">1.00</span></p>
+  <p>VAT (20%): €<span id="vat">0.20</span></p>
+  <p><strong>Total: €<span id="total">1.20</span></strong></p>
+  <button id="confirmBtn">Confirm Order</button>
+  <p>Your payment information is secure and encrypted</p>
+</div>
+
+<!-- Script EmailJS -->
+<script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+<script>
+emailjs.init("IPxPRM2vH6-3sY9-N"); // Remplace par ta clé publique EmailJS
+
+// Calcul du total
+const items = document.querySelectorAll('.item');
+const totalEl = document.getElementById('total');
+const vatEl = document.getElementById('vat');
+const shippingEl = document.getElementById('shipping');
+const noItemEl = document.getElementById('noItem');
+
+function updateTotal() {
+  let subtotal = 0;
+  items.forEach(item => { if(item.checked) subtotal += parseFloat(item.dataset.price); });
+  noItemEl.style.display = subtotal === 0 ? 'block' : 'none';
+  const shipping = 1.00;
+  const vat = 0.20;
+  const total = subtotal + shipping + vat;
+  totalEl.textContent = total.toFixed(2);
+  vatEl.textContent = vat.toFixed(2);
+  shippingEl.textContent = shipping.toFixed(2);
+}
+items.forEach(item => item.addEventListener('change', updateTotal));
+
+// Envoi e-mail via EmailJS
+document.getElementById('confirmBtn').addEventListener('click', function() {
+  const name = document.getElementById('name').value;
+  const address = document.getElementById('address').value;
+  const city = document.getElementById('city').value;
+  const postal = document.getElementById('postal').value;
+  const country = document.getElementById('country').value;
+  const email = document.getElementById('email').value;
+
+  let products = [];
+  items.forEach(item => { if(item.checked) products.push(item.nextElementSibling.innerText); });
+
+  const total = totalEl.innerText;
+
+  if (!name || !address || !city || !postal || !country || !email) {
+    alert("Please fill in all shipping information.");
+    return;
+  }
+
+  const templateParams = { name, address, city, postal, country, email, products: products.join(", "), total };
+
+  emailjs.send("service_geobois", "template_ds8yvjl", templateParams)
+    .then(response => alert("Order sent successfully!"))
+    .catch(error => alert("Failed to send order. Please try again."));
+});
+</script>
+
+</body>
+</html>
